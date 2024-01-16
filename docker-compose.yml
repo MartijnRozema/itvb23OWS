@@ -14,7 +14,7 @@ services:
           - mysql-hive-db
 
   webserver:
-    build: frontend/
+    build: ./frontend/
     depends_on:
       - database
     command: php -S 0.0.0.0:80

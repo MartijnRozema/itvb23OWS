@@ -1,0 +1,30 @@
+
+services:
+  database:
+    build: ./database/
+    environment:
+      MYSQL_ROOT_PASSWORD:
+      MYSQL_ALLOW_EMPTY_PASSWORD:
+      MYSQL_DATABASE: hive
+    volumes:
+      - sql-data:/var/lib/mysql
+    networks:
+      hive-network:
+        aliases:
+          - mysql-hive-db
+
+  webserver:
+    build: frontend/
+    depends_on:
+      - database
+    command: php -S 0.0.0.0:80
+    ports:
+      - "80:80"
+    networks:
+      - hive-network
+
+volumes:
+  sql-data:
+
+networks:
+  hive-network:

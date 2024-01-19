@@ -1,0 +1,19 @@
+{
+  "name": "martijn/hive-game",
+  "require-dev": {
+    "phpunit/phpunit": "^10"
+  },
+  "license": "proprietary",
+  "authors": [
+    {
+      "name": "Martijn Rozema",
+      "email": "m.rozema@st.hanze.nl"
+    }
+  ],
+  "require": {},
+  "autoload": {
+    "psr-4": {
+      "Classes\\": "./classes"
+    }
+  }
+}

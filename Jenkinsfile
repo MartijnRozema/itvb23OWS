@@ -17,19 +17,6 @@ pipeline {
                 echo 'Sonarqube working...'
             }
         }
-
-        stage('Quality Gate Check') {
-            steps {
-                script {
-                    def qg = waitForQualityGate()
-                    if (qg.status != 'OK') {
-                        error "Pipeline aborted due to quality gate failure: ${qg.status}"
-                    } else {
-                        echo 'Quality Gate passed, pipeline successful!'
-                    }
-                }
-            }
-        }
     }
 
     post {

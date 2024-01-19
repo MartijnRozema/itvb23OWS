@@ -36,6 +36,16 @@ services:
     networks:
       - hive-network
 
+  sonarqube:
+    build: ./sonarqube/
+    volumes:
+    - C:/Users/marti/IdeaProjects/itvb23OWS:/usr/src
+    networks:
+      hive-network:
+        aliases:
+          - sonarqube-server
+    ports:
+      - "9000:9000"
 
 volumes:
   sql-data:

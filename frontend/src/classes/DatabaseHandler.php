@@ -9,7 +9,7 @@ class DatabaseHandler
     private mysqli $conn;
     private string $hostname = 'localhost';
     private string $username = 'root';
-    private string $password = '';
+    private string $password = 'root';
     private string $database = 'hive';
 
     /**
@@ -33,12 +33,12 @@ class DatabaseHandler
      * @param int    $gameId The ID of the game.
      * @param string $piece  The piece being played.
      * @param string $toPos  The position to which the piece is played.
-     * @param int    $prevId The ID of the previous move.
+     * @param int | null    $prevId The ID of the previous move.
      * @param string $state  The state of the game.
      *
      * @return int The ID of the newly inserted move.
      */
-    public function addMove(int $gameId, string $piece, string $toPos, int $prevId, string $state): int {
+    public function addMove(int $gameId, string $piece, string $toPos, int | null $prevId, string $state): int {
         return $this->doAction($gameId, "play", $piece, $toPos, $prevId, $state);
     }
 
@@ -61,7 +61,7 @@ class DatabaseHandler
 
     public function restartGame(): int {
         $db = $this->getConnection();
-        $stmt = $db->prepare("INSERT INTO games;");
+        $stmt = $db->prepare("INSERT INTO games () VALUES ();");
         $stmt->execute();
 
         return $db->insert_id;
@@ -74,7 +74,7 @@ class DatabaseHandler
      * @param string      $action The type of action (e.g., "move", "pass").
      * @param string|null $fromPos The position from which the move is made (null for pass action).
      * @param string|null $toPos The position to which the move is made (null for pass action).
-     * @param int         $prevId The ID of the previous move.
+     * @param int | null         $prevId The ID of the previous move.
      * @param string      $state The state of the game.
      *
      * @return int The ID of the newly inserted move.
@@ -84,13 +84,13 @@ class DatabaseHandler
         string $action,
         string | null $fromPos,
         string | null $toPos,
-        int $prevId,
+        int | null $prevId,
         string $state
     ): int {
         $db = $this->getConnection();
         $cmd = "INSERT INTO moves (game_id, type, move_from, move_to, previous_id, state) VALUES (?, ?, ?, ?, ?, ?);";
         $stmt = $db->prepare($cmd);
-        $stmt->bind_param("isssis", $gameId, $action, $fromPos, $toPos, $prevId, $state);
+        $stmt->bind_param("issiis", $gameId, $action, $fromPos, $toPos, $prevId, $state);
         $stmt->execute();
 
         return $db->insert_id;

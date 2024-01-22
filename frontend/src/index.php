@@ -1,25 +1,47 @@
 <?php
-    session_start();
+require_once __DIR__ . '/vendor/autoload.php';
 
-    include_once 'util.php';
+use Classes\Game;
 
-    if (!isset($_SESSION['board'])) {
-        header('Location: restart.php');
-        exit(0);
-    }
-    $board = $_SESSION['board'];
-    $player = $_SESSION['player'];
-    $hand = $_SESSION['hand'];
+session_start();
 
-    $to = [];
-    foreach ($GLOBALS['OFFSETS'] as $pq) {
-        foreach (array_keys($board) as $pos) {
-            $pq2 = explode(',', $pos);
-            $to[] = ($pq[0] + $pq2[0]).','.($pq[1] + $pq2[1]);
-        }
-    }
-    $to = array_unique($to);
-    if (!count($to)) $to[] = '0,0';
+$hiveGame = new Game();
+
+if (!isset($_SESSION['board'])) {
+    $hiveGame->restart();
+}
+
+$hiveGame->executeAction();
+
+$board = $_SESSION['board'];
+$player = $_SESSION['player'];
+
+$playerOne = $hiveGame->getHand(0);
+$playerTwo = $hiveGame->getHand(1);
+
+////    var_dump($_SESSION["board"]);
+////    var_dump("<br/>");
+//    foreach ($_SESSION["board"] as $a => $b) {
+//        var_dump($a);
+//        var_dump("<br/>");
+//        var_dump($b);
+//        var_dump("<br/>");
+////        var_dump($st[count($st) - 1][0]);
+////        var_dump("<br/>");
+//    }
+//    var_dump($_SESSION["board"]["-1,-1"]);
+//    var_dump("<br/>");
+//    var_dump($_SESSION["board"]["0,1"]);
+//    var_dump("<br/>");
+//    $to = [];
+//    foreach ($GLOBALS['OFFSETS'] as $pq) {
+//        foreach (array_keys($board) as $pos) {
+//            $pq2 = explode(',', $pos);
+//            $to[] = ($pq[0] + $pq2[0]).','.($pq[1] + $pq2[1]);
+//        }
+//    }
+//    $to = array_unique($to);
+//    if (!count($to)) $to[] = '0,0';
 ?>
 <!DOCTYPE html>
 <html>
@@ -104,9 +126,9 @@
         <div class="hand">
             White:
             <?php
-                foreach ($hand[0] as $tile => $ct) {
+                foreach ($playerOne as $tile => $ct) {
                     for ($i = 0; $i < $ct; $i++) {
-                        echo '<div class="tile player0"><span>'.$tile."</span></div> ";
+                        echo "<div class='tile player0'><span>$tile</span></div>&nbsp";
                     }
                 }
             ?>
@@ -114,68 +136,62 @@
         <div class="hand">
             Black:
             <?php
-            foreach ($hand[1] as $tile => $ct) {
-                for ($i = 0; $i < $ct; $i++) {
-                    echo '<div class="tile player1"><span>'.$tile."</span></div> ";
+                foreach ($playerTwo as $tile => $ct) {
+                    for ($i = 0; $i < $ct; $i++) {
+                        echo "<div class='tile player1'><span>$tile</span></div>&nbsp";
+                    }
                 }
-            }
             ?>
         </div>
         <div class="turn">
-            Turn: <?php if ($player == 0) echo "White"; else echo "Black"; ?>
+            Turn: <?= $player === 0 ? "White" : "Black"; ?>
         </div>
-        <form method="post" action="play.php">
+        <form method="post">
             <select name="piece">
                 <?php
-                    foreach ($hand[$player] as $tile => $ct) {
-                        echo "<option value=\"$tile\">$tile</option>";
+                    foreach ($hiveGame->getAvailablePieces() as $tile) {
+                        echo "<option value='$tile'>$tile</option>";
                     }
                 ?>
             </select>
-            <select name="to">
+            <select name="pos">
                 <?php
-                    foreach ($to as $pos) {
-                        echo "<option value=\"$pos\">$pos</option>";
+                    foreach ($hiveGame->getValidPlayMoves() as $pos) {
+                        if (true) {
+                            echo "<option value='$pos'>$pos</option>";
+                        }
                     }
                 ?>
             </select>
-            <input type="submit" value="Play">
+            <button type="submit" name="action" value="play">Play</button>
         </form>
-        <form method="post" action="move.php">
+        <form method="post">
             <select name="from">
                 <?php
-                    foreach (array_keys($board) as $pos) {
-                        echo "<option value=\"$pos\">$pos</option>";
+                    foreach ($hiveGame->getOccupiedPositions() as $pos) {
+                        echo "<option value='$pos'>$pos</option>";
                     }
                 ?>
             </select>
             <select name="to">
                 <?php
-                    foreach ($to as $pos) {
+                    foreach ($hiveGame->getBoundaries() as $pos) {
                         echo "<option value=\"$pos\">$pos</option>";
                     }
                 ?>
             </select>
-            <input type="submit" value="Move">
+            <button type="submit" name="action" value="move">Play</button>
         </form>
         <form method="post" action="pass.php">
             <input type="submit" value="Pass">
         </form>
-        <form method="post" action="restart.php">
-            <input type="submit" value="Restart">
+        <form method="post">
+            <button type="submit" name="action" value="restart">Restart</button>
         </form>
-        <strong><?php if (isset($_SESSION['error'])) echo($_SESSION['error']); unset($_SESSION['error']); ?></strong>
-        <ol>
-            <?php
-                $db = include 'database.php';
-                $stmt = $db->prepare('SELECT * FROM moves WHERE game_id = '.$_SESSION['game_id']);
-                $stmt->execute();
-                $result = $stmt->get_result();
-                while ($row = $result->fetch_array()) {
-                    echo '<li>'.$row[2].' '.$row[3].' '.$row[4].'</li>';
-                }
-            ?>
-        </ol>
+        <strong>
+            <?= $_SESSION["error"] ?>
+        </strong>
+
         <form method="post" action="undo.php">
             <input type="submit" value="Undo">
         </form>

@@ -5,5 +5,7 @@
             "Classes\\": "./classes"
         }
     },
-    "require": {}
+    "require": {
+        "phpunit/phpunit": "^9.0"
+    }
 }

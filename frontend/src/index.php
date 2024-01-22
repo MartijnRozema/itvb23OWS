@@ -14,34 +14,11 @@ if (!isset($_SESSION['board'])) {
 $hiveGame->executeAction();
 
 $board = $_SESSION['board'];
+
 $player = $_SESSION['player'];
 
 $playerOne = $hiveGame->getHand(0);
 $playerTwo = $hiveGame->getHand(1);
-
-////    var_dump($_SESSION["board"]);
-////    var_dump("<br/>");
-//    foreach ($_SESSION["board"] as $a => $b) {
-//        var_dump($a);
-//        var_dump("<br/>");
-//        var_dump($b);
-//        var_dump("<br/>");
-////        var_dump($st[count($st) - 1][0]);
-////        var_dump("<br/>");
-//    }
-//    var_dump($_SESSION["board"]["-1,-1"]);
-//    var_dump("<br/>");
-//    var_dump($_SESSION["board"]["0,1"]);
-//    var_dump("<br/>");
-//    $to = [];
-//    foreach ($GLOBALS['OFFSETS'] as $pq) {
-//        foreach (array_keys($board) as $pos) {
-//            $pq2 = explode(',', $pos);
-//            $to[] = ($pq[0] + $pq2[0]).','.($pq[1] + $pq2[1]);
-//        }
-//    }
-//    $to = array_unique($to);
-//    if (!count($to)) $to[] = '0,0';
 ?>
 <!DOCTYPE html>
 <html>
@@ -111,6 +88,7 @@ $playerTwo = $hiveGame->getHand(1);
                     $pq[1];
                     $h = count($tile);
                     echo '<div class="tile player';
+//                    var_dump($tile[$h-1][0]);
                     echo $tile[$h-1][0];
                     if ($h > 1) echo ' stacked';
                     echo '" style="left: ';
@@ -165,6 +143,7 @@ $playerTwo = $hiveGame->getHand(1);
             </select>
             <button type="submit" name="action" value="play">Play</button>
         </form>
+        <?php if ($_SESSION["turn_counter"] > 1) { ?>
         <form method="post">
             <select name="from">
                 <?php
@@ -180,11 +159,12 @@ $playerTwo = $hiveGame->getHand(1);
                     }
                 ?>
             </select>
-            <button type="submit" name="action" value="move">Play</button>
+            <button type="submit" name="action" value="move">Move</button>
         </form>
         <form method="post" action="pass.php">
             <input type="submit" value="Pass">
         </form>
+        <?php } ?>
         <form method="post">
             <button type="submit" name="action" value="restart">Restart</button>
         </form>

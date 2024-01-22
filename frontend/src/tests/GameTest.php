@@ -75,7 +75,7 @@ class GameTest extends TestCase
         $validMoves = $this->hive->getValidPlayMoves();
 
         # Assert
-        self::assertEquals(["0,1", "0,-1", "1,0", "-1,0", "-1,1", "1,-1"], $validMoves);
+        self::assertEquals(["0,1", "0,-1", "1,0", "-1,0"], $validMoves);
     }
 
     public function test_GetOccupiedPositions_NoPlaysDoneByPlayer_ShouldReturnEmptyArray(): void {

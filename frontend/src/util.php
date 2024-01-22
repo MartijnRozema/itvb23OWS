@@ -26,9 +26,9 @@ function neighboursAreSameColor($player, $a, $board) {
     return true;
 }
 
-function len($tile) {
-    return $tile ? count($tile) : 0;
-}
+//function len($tile) {
+//    return $tile ? count($tile) : 0;
+//}
 
 function slide($board, $from, $to) {
     if (!hasNeighBour($to, $board)) return false;

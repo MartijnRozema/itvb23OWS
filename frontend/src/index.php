@@ -88,7 +88,6 @@ $playerTwo = $hiveGame->getHand(1);
                     $pq[1];
                     $h = count($tile);
                     echo '<div class="tile player';
-//                    var_dump($tile[$h-1][0]);
                     echo $tile[$h-1][0];
                     if ($h > 1) echo ' stacked';
                     echo '" style="left: ';
@@ -172,8 +171,8 @@ $playerTwo = $hiveGame->getHand(1);
             <?= $_SESSION["error"] ?>
         </strong>
 
-        <form method="post" action="undo.php">
-            <input type="submit" value="Undo">
+        <form method="post">
+            <button type="submit" name="action" value="undo">Undo</button>
         </form>
     </body>
 </html>

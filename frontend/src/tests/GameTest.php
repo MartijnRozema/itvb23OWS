@@ -117,4 +117,43 @@ class GameTest extends TestCase
         self::assertEquals(["0,0", "-1,0"], $positionPlayerOne);
         self::assertEquals(["0,1", "0,2"], $positionPlayerTwo);
     }
+
+    public function test_Undo_AfterMultiplePlays_ShouldReturnPreviousBoard(): void {
+        # Arrange
+        $this->hive->restart();
+
+        # Act
+        //Player 1 plays first turn.
+        $this->hive->play("0,0", "S");
+        //Player 2 plays first turn.
+        $this->hive->play("0,1", "S");
+        //Player 1 plays second turn.
+        $this->hive->play("-1,0", "S");
+        $board1 = $_SESSION["board"];
+        $player1 = $_SESSION["player"];
+        //Player 2 plays second turn.
+        $this->hive->play("0,2", "S");
+        $this->hive->updateSession();
+
+        $this->hive->undo();
+
+        $board2 = $_SESSION["board"];
+        $player2 = $_SESSION["player"];
+
+        # Assert
+        self::assertEquals($board1, $board2);
+        self::assertEquals($player1, $player2);
+    }
+
+    public function test_Undo_OnFirstTurn_WillSetError(): void {
+        # Arrange
+        $this->hive->restart();
+
+        # Act
+        $this->hive->undo();
+        $this->hive->updateSession();
+
+        # Assert
+        self::assertEquals("You have not yet played a move.", $_SESSION["error"]);
+    }
 }

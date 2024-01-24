@@ -30,7 +30,6 @@ class Game
         if (!isset($_POST["action"])) {
             return;
         }
-
         $this->initializeGame();
 
        $this->error = null;
@@ -253,8 +252,17 @@ class Game
 
     }
 
-    private function undo(): void {
+    public function undo(): void {
+        if ($this->prevMoveId == null) {
+            $this->setError("You have not yet played a move.");
+            return;
+        }
 
+        try {
+            $this->resetPrevState($this->databaseHandler->undoMove($this->prevMoveId));
+        } catch (\Exception $exception) {
+            $this->setError($exception->getMessage());
+        }
     }
 
     /**
@@ -302,6 +310,10 @@ class Game
         $_SESSION["last_move"] = $this->prevMoveId;
         $_SESSION["turn_counter"] = $this->turnCounter;
         $_SESSION["error"] = $this->error;
+    }
+
+    private function resetPrevState(string $state): void {
+        [$this->hand, $this->board, $this->player, $this->prevMoveId, $this->turnCounter] = unserialize($state);
     }
 
     private function setError(string $msg): void {
@@ -368,6 +380,13 @@ class Game
         return true;
     }
 
+    /**
+     * Checks if a given position has a neighbor of the same color on the provided board.
+     *
+     * @param string $fromPos The position to check for same-color neighbors.
+     * @param array $board The board representing the goal state of the move.
+     * @return bool Returns true if a same-color neighbor is found, false otherwise.
+     */
     private function hasSameColorNeighbour(string $fromPos, array $board): bool {
         foreach ($board as $pos => $pieces) {
             if (!$pieces) {
@@ -461,8 +480,85 @@ class Game
         return false;
     }
 
-    private function canMove(array $board, string $fromPos, bool $bypassNeighbourCheck = false): bool {
-        if (!$bypassNeighbourCheck && !$this->hasSameColorNeighbour($fromPos, $board)) {
+    /**
+     * Checks if a spider can move from the starting position to the target position within a specified number of steps,
+     * considering a provided board configuration.
+     *
+     * @param string $fromPos The starting position of the spider (in the format "x,y").
+     * @param string $toPos The target position the spider wants to reach (in the format "x,y").
+     * @param int $steps The maximum number of steps the spider can take to reach the target position.
+     * @param array|null $visited An array to keep track of visited positions during the recursive exploration.
+     * @param array|null $board The board configuration to consider for the movement check. If not provided, the main board is used.
+     * @return bool Returns true if the spider can reach the target position within the specified steps, false otherwise.
+     */
+    private function canSpiderMove(
+        string $fromPos,
+        string $toPos,
+        int $steps = 2,
+        array $visited = null,
+        array $board = null
+    ): bool {
+        if ($steps === 0 && $fromPos == $toPos) {
+            return true;
+        }
+
+        if ($fromPos == $toPos || $this->hasBeetleOnTop($fromPos)) {
+            return false;
+        }
+
+        $board = $board ?? $this->board;
+
+        $visited = $visited ?? [];
+        $visited[$fromPos] = true;
+
+        $directions = $GLOBALS['OFFSETS'];
+
+        [$x, $y] = explode(',', $fromPos);
+
+        foreach ($directions as [$dx, $dy]) {
+            $newX = (int)$x + $dx;
+            $newY = (int)$y + $dy;
+            $newPos = "$newX,$newY";
+
+            if (!$this->isNeighbour($fromPos, $newPos)) {
+                continue;
+            }
+
+            if (!isset($board[$toPos])) {
+                $board = $this->copyArray($this->board);
+
+                $posValue = $board[$fromPos];
+                unset($board[$fromPos]);
+
+                // Check if neighbors of the target position have the same color as the player
+                if (!$this->canMove($board, $fromPos)) {
+                    $board[$fromPos] = $posValue;
+                    continue;
+                }
+            }
+
+
+            if (!isset($visited[$newPos]) && $steps > 0) {
+                if ($this->canSpiderMove($newPos, $toPos, $steps - 1, $visited, $board)) {
+                    return true;
+                }
+            }
+        }
+
+        unset($visited[$fromPos]);
+
+        return false;
+    }
+
+    /**
+     * Checks if a move is valid on the given board based on connectivity to existing pieces.
+     *
+     * @param array $board The board representing the goal state of the move.
+     * @param string $fromPos The starting position of the move.
+     * @return bool Returns true if the move is valid, false otherwise.
+     */
+    private function canMove(array $board, string $fromPos): bool {
+        if (!$this->hasSameColorNeighbour($fromPos, $board)) {
             return false;
         }
 
@@ -508,13 +604,7 @@ class Game
             return false;
         }
 
-//        if ($topOfStack[1] == "B") {
-//            return false;
-//        }
         return true;
-//        $x = $topOfStack[0] == $this->player || ($topOfStack[1] == "B" && $topOfStack[0] != $this->player)
-//        return $topOfStack[0] == $this->player &&
-//            $topOfStack[1] == "B";
     }
 
     /**

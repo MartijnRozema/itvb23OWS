@@ -208,4 +208,42 @@ class GameTest extends TestCase
         self::assertEquals($expected, $_SESSION["board"]);
         self::assertEquals(null, $_SESSION["error"]);
     }
+
+    public function test_Play_DoThreeTurnsForEachUserWithoutPlayingQueen_GetError(): void {
+        # Arrange
+        $this->hive->restart();
+
+        # Act
+        $this->hive->play("0,0", "A");
+        $this->hive->play("0,1", "A");
+        $this->hive->play("-1,0", "A");
+        $this->hive->play("0,2", "A");
+        $this->hive->play("-1,-1", "A");
+        $this->hive->play("0,3", "A");
+        $this->hive->play("-2,-1", "B");
+
+        $this->hive->updateSession();
+
+
+        # Assert
+        self::assertEquals("The queen bee has to be played this turn.", $_SESSION["error"]);
+    }
+
+    public function test_Play_DoThreeTurnsForEachUserWhilePlayingQueen_DoesntGetError(): void {
+        # Arrange
+        $this->hive->restart();
+
+        # Act
+        $this->hive->play("0,0", "A");
+        $this->hive->play("0,1", "A");
+        $this->hive->play("-1,0", "A");
+        $this->hive->play("0,2", "A");
+        $this->hive->play("-1,-1", "A");
+        $this->hive->play("0,3", "A");
+        $this->hive->play("-2,-1", "Q");
+        $this->hive->updateSession();
+
+        # Assert
+        self::assertEquals(null, $_SESSION["error"]);
+    }
 }

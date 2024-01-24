@@ -221,6 +221,12 @@ class Game
                         return;
                     }
                     break;
+                case "S":
+                    if (!$this->canSpiderMove($fromPos, $toPos)) {
+                        $this->setError("Spider can not be moved.");
+                    }
+                    return;
+                
                 default:
                     $this->setError("Not yet implemented.");
                     return;

@@ -175,4 +175,37 @@ class GameTest extends TestCase
         # Assert
         self::assertEquals(null, $_SESSION["error"]);
     }
+
+    public function test_Play_QueensPlayedOnFirstTurnAndTouch_ShouldBeAllowed(): void {
+        # Arrange
+        $this->hive->restart();
+
+        # Act
+        //Player 1 plays first turn.
+        $this->hive->play("0,0", "Q");
+        //Player 2 plays first turn.
+        $this->hive->play("1,0", "Q");
+
+        $this->hive->updateSession();
+
+
+        # Assert
+        $expected = array(
+            "0,0" => array(
+                array(
+                    0,
+                    "Q"
+                )
+            ),
+            "1,0" => array(
+                array(
+                    1,
+                    "Q"
+                )
+            )
+        );
+
+        self::assertEquals($expected, $_SESSION["board"]);
+        self::assertEquals(null, $_SESSION["error"]);
+    }
 }

@@ -160,8 +160,8 @@ $playerTwo = $hiveGame->getHand(1);
             </select>
             <button type="submit" name="action" value="move">Move</button>
         </form>
-        <form method="post" action="pass.php">
-            <input type="submit" value="Pass">
+        <form method="post">
+            <button type="submit" name="action" value="pass">Pass</button>
         </form>
         <?php } ?>
         <form method="post">

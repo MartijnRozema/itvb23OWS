@@ -156,4 +156,23 @@ class GameTest extends TestCase
         # Assert
         self::assertEquals("You have not yet played a move.", $_SESSION["error"]);
     }
+
+    public function test_Play_AfterMovementHasHappened_AllowPlacingInEmptyPosition(): void {
+        # Arrange
+        $this->hive->restart();
+
+        # Act
+        //Player 1 plays first turn.
+        $this->hive->play("0,0", "B");
+        //Player 2 plays first turn.
+        $this->hive->play("1,0", "B");
+        //Player 1 moves their piece.
+        $this->hive->move("0,0", "-1,1");
+
+        //Player 2 plays a stone in the original position of player 1 turn 1.
+        $this->hive->play("0,0", "B");
+
+        # Assert
+        self::assertEquals(null, $_SESSION["error"]);
+    }
 }

@@ -194,7 +194,7 @@ class Game
         }
     }
 
-    private function move(string $fromPos, string $toPos): void {
+    public function move(string $fromPos, string $toPos): void {
         if (!isset($this->board[$fromPos])) {
             $this->setError("The board position does not have a piece.");
         } elseif ($this->board[$fromPos][count($this->board[$fromPos])-1][0] != $this->player) {

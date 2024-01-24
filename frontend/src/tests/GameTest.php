@@ -246,4 +246,25 @@ class GameTest extends TestCase
         # Assert
         self::assertEquals(null, $_SESSION["error"]);
     }
+
+    public function test_Play_MoveSpider_DoesntGetError(): void {
+        # Arrange
+        $this->hive->restart();
+
+        # Act
+        $this->hive->play("0,0", "A");
+        $this->hive->play("1,0", "A");
+        $this->hive->play("0,-1", "A");
+        $this->hive->play("2,0", "A");
+        $this->hive->play("0,-2", "A");
+        $this->hive->play("3,0", "S");
+        $this->hive->play("0,-3", "Q");
+        $this->hive->play("2,1", "Q");
+        $this->hive->play("0,-4", "B");
+        $this->hive->move("3,0", "-1,0");
+
+        # Assert
+        self::assertEquals(null, $_SESSION["error"]);
+
+    }
 }

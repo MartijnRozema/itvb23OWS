@@ -533,12 +533,10 @@ class Game
             if (!isset($board[$toPos])) {
                 $board = $this->copyArray($this->board);
 
-                $posValue = $board[$fromPos];
                 unset($board[$fromPos]);
 
                 // Check if neighbors of the target position have the same color as the player
                 if (!$this->canMove($board, $fromPos)) {
-                    $board[$fromPos] = $posValue;
                     continue;
                 }
             }

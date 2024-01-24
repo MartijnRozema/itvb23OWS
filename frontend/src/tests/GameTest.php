@@ -133,7 +133,6 @@ class GameTest extends TestCase
         $player1 = $_SESSION["player"];
         //Player 2 plays second turn.
         $this->hive->play("0,2", "S");
-        $this->hive->updateSession();
 
         $this->hive->undo();
 
@@ -247,7 +246,7 @@ class GameTest extends TestCase
         self::assertEquals(null, $_SESSION["error"]);
     }
 
-    public function test_Play_MoveSpider_DoesntGetError(): void {
+    public function test_Move_MoveSpider_DoesntGetError(): void {
         # Arrange
         $this->hive->restart();
 
@@ -265,6 +264,24 @@ class GameTest extends TestCase
 
         # Assert
         self::assertEquals(null, $_SESSION["error"]);
+    }
 
+    public function test_Move_AntCanMoveAroundHive_DoesntGetError(): void {
+        # Arrange
+        $this->hive->restart();
+
+        # Act
+        $this->hive->play("0,0", "A");
+        $this->hive->play("0,1", "A");
+        $this->hive->play("-1,0", "A");
+        $this->hive->play("0,2", "A");
+        $this->hive->play("-1,-1", "A");
+        $this->hive->play("0,3", "A");
+        $this->hive->play("-2,0", "Q");
+        $this->hive->play("0,4", "Q");
+        $this->hive->move("-1,-1", "-1,0");
+
+        # Assert
+        self::assertEquals(null, $_SESSION["error"]);
     }
 }

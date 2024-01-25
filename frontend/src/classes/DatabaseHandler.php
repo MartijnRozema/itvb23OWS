@@ -42,6 +42,15 @@ class DatabaseHandler
         return $this->doAction($gameId, "play", $piece, $toPos, $prevId, $state);
     }
 
+    /**
+     * Undoes a specific move in the Hive game based on the provided move ID.
+     *
+     * @param int $moveId The identifier of the move to be undone.
+     *
+     * @return string The serialized state representing the game state before the move.
+     *
+     * @throws Exception If the undo operation fails.
+     */
     public function undoMove(int $moveId): string {
         $db = $this->getConnection();
 
@@ -82,6 +91,11 @@ class DatabaseHandler
         return $this->doAction($gameId, "pass", null, null, $prevId, $state);
     }
 
+    /**
+     * Restarts the Hive game by creating a new game instance in the database.
+     *
+     * @return int The ID of the newly created game instance.
+     */
     public function restartGame(): int {
         $db = $this->getConnection();
         $stmt = $db->prepare("INSERT INTO games () VALUES ();");

@@ -16,6 +16,8 @@ class Game
     private int $turnCounter;
     private string | null $error;
 
+    private int $gameStatus = 0;
+
     public function __construct(DatabaseHandler $databaseHandler = null) {
         $this->databaseHandler = $databaseHandler ?? new DatabaseHandler();
     }
@@ -90,8 +92,7 @@ class Game
      */
     public function getValidPlayMoves(): array {
         $this->initializeGame();
-//        var_dump(array_keys($this->board));
-//        die;
+
         $validMoves = [];
         foreach ($GLOBALS["OFFSETS"] as $offset) {
             foreach (array_keys($this->board) as $pos) {
@@ -188,12 +189,19 @@ class Game
             $this->prevMoveId = $this->databaseHandler->
                 addMove($this->gameId, $piece, $pos, $this->prevMoveId, $this->getSerializedState());
             $this->turnCounter++;
+            $this->gameStatus = $this->getGameStatus();
             $this->player = ($this->player + 1) % 2;
-
-            //TODO: Add check if game is over.
         }
     }
 
+    /**
+     * Moves a piece on the Hive game board from one position to another.
+     *
+     * @param string $fromPos The starting position of the piece.
+     * @param string $toPos   The target position to move the piece to.
+     *
+     * @return void
+     */
     public function move(string $fromPos, string $toPos): void {
         if (!isset($this->board[$fromPos])) {
             $this->setError("The board position does not have a piece.");
@@ -202,6 +210,8 @@ class Game
         } else {
             $currentEntries = $this->board[$fromPos];
             $piece = $currentEntries[count($currentEntries)-1][1];
+
+            // Validate the move based on the type of piece
             switch ($piece) {
                 case "Q":
                     if (!$this->canQueenMove($fromPos, $toPos)) {
@@ -253,10 +263,16 @@ class Game
             $this->prevMoveId = $this->databaseHandler->
                 doMove($this->gameId, $fromPos, $toPos, $this->prevMoveId, $this->getSerializedState());
             $this->turnCounter++;
+            $this->gameStatus = $this->getGameStatus();
             $this->player = ($this->player + 1) % 2;
         }
     }
 
+    /**
+     * Passes the current turn in the Hive game.
+     *
+     * @return void
+     */
     private function pass(): void {
         if (!$this->canPass()) {
             $this->setError("You can not pass this turn.");
@@ -269,6 +285,11 @@ class Game
         $this->player = ($this->player + 1) % 2;
     }
 
+    /**
+     * Undoes the last move in the Hive game.
+     *
+     * @return void
+     */
     public function undo(): void {
         if ($this->prevMoveId == null) {
             $this->setError("You have not yet played a move.");
@@ -297,6 +318,7 @@ class Game
         $this->error = null;
         $this->prevMoveId = null;
         $this->turnCounter = 0;
+        $this->gameStatus = 0;
 
         $this->updateSession();
     }
@@ -313,6 +335,7 @@ class Game
         $this->prevMoveId = $_SESSION["last_move"] ?? null;
         $this->turnCounter = $_SESSION["turn_counter"] ?? 0;
         $this->error = $_SESSION["error"] ?? null;
+        $this->gameStatus = $_SESSION["game_status"] ?? 0;
     }
 
     /**
@@ -327,12 +350,28 @@ class Game
         $_SESSION["last_move"] = $this->prevMoveId;
         $_SESSION["turn_counter"] = $this->turnCounter;
         $_SESSION["error"] = $this->error;
+        $_SESSION["game_status"] = $this->gameStatus;
     }
 
+    /**
+     * Resets the game state to a previous state.
+     *
+     * @param string $state The serialized representation of the previous game state.
+     *
+     * @return void
+     */
     private function resetPrevState(string $state): void {
         [$this->hand, $this->board, $this->player, $this->prevMoveId, $this->turnCounter] = unserialize($state);
     }
 
+
+    /**
+     * Sets an error message for the current game instance.
+     *
+     * @param string $msg The error message to be set.
+     *
+     * @return void
+     */
     private function setError(string $msg): void {
         $this->error = $msg;
     }
@@ -419,6 +458,11 @@ class Game
         return false;
     }
 
+    /**
+     * Checks if the current player can pass the turn in the Hive game.
+     *
+     * @return bool Returns true if the player can pass, false otherwise.
+     */
     private function canPass(): bool {
         if (count($this->getHand()) > 0 ||
             count($this->getValidPlayMoves()) > 0) {
@@ -490,6 +534,14 @@ class Game
         return $this->canMove($board, $fromPos);
     }
 
+    /**
+     * Checks if a Grasshopper piece can make a valid move from one position to another in the Hive game.
+     *
+     * @param string $fromPos The starting position of the Grasshopper.
+     * @param string $toPos   The target position to move the Grasshopper to.
+     *
+     * @return bool Returns true if the move is valid, false otherwise.
+     */
     private function canGrasshopperMove(string $fromPos, string $toPos): bool {
         if ($fromPos == $toPos) {
             return false;
@@ -722,6 +774,74 @@ class Game
             return false;
         }
 
+        return true;
+    }
+
+    /**
+     * Get the current status of the Hive game.
+     *
+     * @return int The game status code:
+     *   - 0: Game in play
+     *   - 1: Player 0 wins
+     *   - 2: Player 1 wins
+     *   - 3: Draw
+     */
+    public function getGameStatus(): int {
+        $currentPlayer = $this->isGameOver($this->player);
+        $opponent = $this->isGameOver(($this->player + 1) % 2);
+
+        if ($currentPlayer && $opponent) {
+            return 3;
+        }
+
+        if ($currentPlayer) {
+            return 1;
+        }
+
+        if ($opponent) {
+            return 2;
+        }
+
+        return 0;
+    }
+
+    /**
+     * Check if the game is over for the specified player.
+     *
+     * @param int $player The player to check for game over (0 or 1).
+     *
+     * @return bool True if the player's queen is blocked in, indicating game over; otherwise, false.
+     */
+    private function isGameOver(int $player): bool {
+        $queenPos = null;
+
+        foreach ($this->board as $pos => $items) {
+            foreach ($items as $item) {
+                if ($item[0] == $player && $item[1] == "Q") {
+                    $queenPos = $pos;
+                    break;
+                }
+            }
+
+            if ($queenPos == null) {
+                return false;
+            }
+        }
+
+        [$x1, $y1] = (int)explode(",", $queenPos);
+
+        $directions = $GLOBALS["OFFSETS"];
+
+        foreach ($directions as [$x2, $y2]) {
+            $p = $x1 + $x2;
+            $q = $y1 + $y2;
+
+            $newPos = $p.",".$q;
+
+            if (!array_key_exists($newPos, $this->board)) {
+                return false;
+            }
+        }
         return true;
     }
 

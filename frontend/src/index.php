@@ -123,6 +123,7 @@ $playerTwo = $hiveGame->getHand(1);
         <div class="turn">
             Turn: <?= $player === 0 ? "White" : "Black"; ?>
         </div>
+        <?php if ($_SESSION["game_status"] == 0) { ?>
         <form method="post">
             <select name="piece">
                 <?php
@@ -165,15 +166,26 @@ $playerTwo = $hiveGame->getHand(1);
         </form>
         <?php } ?>
         <form method="post">
+            <button type="submit" name="action" value="undo">Undo</button>
+        </form>
+        <?php } ?>
+        <form method="post">
             <button type="submit" name="action" value="restart">Restart</button>
         </form>
         <strong>
             <?= $_SESSION["error"] ?>
         </strong>
-
-        <form method="post">
-            <button type="submit" name="action" value="undo">Undo</button>
-        </form>
+        <strong>
+            <?php
+                if ($_SESSION["game_status"] == 1) {
+                    echo "White has won!";
+                } elseif ($_SESSION["game_status"] == 2) {
+                    echo "Black has won!";
+                } elseif ($_SESSION["game_status"] == 3) {
+                    echo "The game ended in a draw!";
+                }
+            ?>
+        </strong>
     </body>
 </html>
 

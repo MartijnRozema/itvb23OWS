@@ -284,4 +284,40 @@ class GameTest extends TestCase
         # Assert
         self::assertEquals(null, $_SESSION["error"]);
     }
+
+    public function test_IsGameOver_QueenNotSurrounded_ShouldReturnFalse(): void {
+        # Arrange
+        $this->hive->restart();
+
+        # Act
+        $this->hive->play("0,0", "Q");
+        $this->hive->play("0,1", "A");
+        $this->hive->play("-1,0", "A");
+        $this->hive->play("0,2", "A");
+        $this->hive->updateSession();
+        $gameStatus = $this->hive->getGameStatus();
+
+        self::assertEquals(0, $gameStatus);
+    }
+
+    public function test_IsGameOver_QueenSurrounded_ShouldReturnTrue(): void {
+        # Arrange
+        $this->hive->restart();
+
+        # Act
+        $this->hive->play("0,0", "Q");
+        $_SESSION["board"] = [
+            "0,1" => [[1, "S"]],
+            "0,-1" => [[1, "S"]],
+            "-1,1" => [[1, "A"]],
+            "-1,-1" => [[1, "A"]],
+            "1,1" => [[1, "A"]],
+        ];
+        $this->hive->initializeGame();
+        $this->hive->play("1,-1", "G");
+        $this->hive->updateSession();
+
+        # Assert
+        self::assertEquals(2, $this->hive->getGameStatus());
+    }
 }

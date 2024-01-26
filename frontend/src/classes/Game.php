@@ -56,10 +56,10 @@ class Game
             case "restart":
                 $this->restart();
                 $this->reloadPage();
+                return;
             case "ai_play":
                 $this->aiPlay();
                 break;
-                return;
             default:
                 $this->reloadPage();
                 return;
@@ -67,6 +67,35 @@ class Game
 
         $this->updateSession();
         $this->reloadPage();
+    }
+
+    /**
+     * Builds HTML code for a tile based on its position and attributes.
+     *
+     * @param string $pos    The position of the tile.
+     * @param array  $tiles  An array representing the layers of the tile.
+     * @param int    $minP   The minimum value for the x-coordinate.
+     * @param int    $minQ   The minimum value for the y-coordinate.
+     *
+     * @return string HTML code for the tile.
+     */
+    public function buildTile(string $pos, array $tiles, int $minP, int $minQ): string {
+        $pq = explode(',', $pos);
+        $tileCount = count($tiles);
+        $topTile = $tiles[$tileCount-1];
+        $player = $topTile[0];
+        $piece = $topTile[1];
+
+        $class = $tileCount > 1 ? "tile player$player stacked" : "tile player$player";
+        $left = (($pq[0] - $minP) * 4 + ($pq[1] - $minQ) * 2)."em;";
+        $top = (($pq[1] - $minQ) * 4)."em;";
+
+        return "<div class='$class' style='left: $left top: $top'>
+                    $pos
+                    <span>
+                        $piece
+                    </span>
+                </div>";
     }
 
     /**

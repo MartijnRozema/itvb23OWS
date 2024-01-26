@@ -21,82 +21,23 @@ $playerOne = $hiveGame->getHand(0);
 $playerTwo = $hiveGame->getHand(1);
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <title>Hive</title>
-        <style>
-            div.board {
-                width: 60%;
-                height: 100%;
-                min-height: 500px;
-                float: left;
-                overflow: scroll;
-                position: relative;
-            }
-
-            div.board div.tile {
-                position: absolute;
-            }
-
-            div.tile {
-                display: inline-block;
-                width: 4em;
-                height: 4em;
-                border: 1px solid black;
-                box-sizing: border-box;
-                font-size: 50%;
-                padding: 2px;
-            }
-
-            div.tile span {
-                display: block;
-                width: 100%;
-                text-align: center;
-                font-size: 200%;
-            }
-
-            div.player0 {
-                color: black;
-                background: white;
-            }
-
-            div.player1 {
-                color: white;
-                background: black
-            }
-
-            div.stacked {
-                border-width: 3px;
-                border-color: red;
-                padding: 0;
-            }
-        </style>
+        <link rel="stylesheet" href="styling/hive.css"
     </head>
     <body>
         <div class="board">
             <?php
-                $min_p = 1000;
-                $min_q = 1000;
+                $minP = 1000;
+                $minQ = 1000;
                 foreach ($board as $pos => $tile) {
-                    $pq = explode(',', $pos);
-                    if ($pq[0] < $min_p) $min_p = $pq[0];
-                    if ($pq[1] < $min_q) $min_q = $pq[1];
+                    [$p, $q] = explode(',', $pos);
+                    $minP = min($p, $minP);
+                    $minQ = min($p, $minQ);
                 }
                 foreach (array_filter($board) as $pos => $tile) {
-                    $pq = explode(',', $pos);
-                    $pq[0];
-                    $pq[1];
-                    $h = count($tile);
-                    echo '<div class="tile player';
-                    echo $tile[$h-1][0];
-                    if ($h > 1) echo ' stacked';
-                    echo '" style="left: ';
-                    echo ($pq[0] - $min_p) * 4 + ($pq[1] - $min_q) * 2;
-                    echo 'em; top: ';
-                    echo ($pq[1] - $min_q) * 4;
-                    echo "em;\">($pq[0],$pq[1])<span>";
-                    echo $tile[$h-1][1];
-                    echo '</span></div>';
+                    echo $hiveGame->buildTile($pos, $tile, $minP, $minQ);
                 }
             ?>
         </div>
@@ -175,7 +116,7 @@ $playerTwo = $hiveGame->getHand(1);
         <form method="post">
             <button type="submit" name="action" value="restart">Restart</button>
         </form>
-        <strong>
+        <strong class="error">
             <?= $_SESSION["error"] ?>
         </strong>
         <strong>

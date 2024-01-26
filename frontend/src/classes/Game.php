@@ -56,6 +56,9 @@ class Game
             case "restart":
                 $this->restart();
                 $this->reloadPage();
+            case "ai_play":
+                $this->aiPlay();
+                break;
                 return;
             default:
                 $this->reloadPage();
@@ -321,6 +324,36 @@ class Game
         $this->gameStatus = 0;
 
         $this->updateSession();
+    }
+
+    private function aiPlay(): void {
+        $url = "http://hiveai:80";
+
+        $options = [
+            "http" => [
+                "header" => "Content-Type: application/json\r\n",
+                "method" => "POST",
+                "content" => json_encode([
+                    "move_number" => $this->turnCounter+1,
+                    "hand" => $this->hand,
+                    "board" => $this->board
+                ]),
+            ]
+        ];
+
+        $response = json_decode(file_get_contents($url, false, stream_context_create($options)));
+
+        switch ($response[0]) {
+            case "play":
+                $this->play($response[1], $response[2]);
+                break;
+            case "move":
+                $this->move($response[1], $response[2]);
+                break;
+            case "pass":
+                $this->pass();
+                break;
+        }
     }
 
     /**

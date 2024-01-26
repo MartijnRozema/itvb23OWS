@@ -47,6 +47,14 @@ services:
     ports:
       - "9000:9000"
 
+  ai:
+    build: ./ai/
+    command: flask --app app run --debug
+    networks:
+      hive-network:
+        aliases:
+            - hiveai
+
 volumes:
   sql-data:
   jenkins-data:

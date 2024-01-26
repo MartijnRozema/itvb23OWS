@@ -170,6 +170,9 @@ $playerTwo = $hiveGame->getHand(1);
         </form>
         <?php } ?>
         <form method="post">
+            <button type="submit" name="action" value="ai_play">AI Play</button>
+        </form>
+        <form method="post">
             <button type="submit" name="action" value="restart">Restart</button>
         </form>
         <strong>
